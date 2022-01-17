@@ -14,4 +14,5 @@ public interface DroneService {
     Flux<Medication> getMedicationItemsForADrone(Mono<Long> droneIdParam);
     Flux<Drone> getAllDrones();
     Flux<Drone> getAvailableDrones();
+    Mono<Double> getDroneBatteryLevel(Mono<Long> droneIdParam);
 }

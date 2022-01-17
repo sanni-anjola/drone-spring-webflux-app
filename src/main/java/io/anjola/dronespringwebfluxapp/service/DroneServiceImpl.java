@@ -6,7 +6,6 @@ import io.anjola.dronespringwebfluxapp.model.Drone;
 import io.anjola.dronespringwebfluxapp.model.Medication;
 import io.anjola.dronespringwebfluxapp.payload.CustomResponse;
 import io.anjola.dronespringwebfluxapp.repository.DroneRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -32,10 +31,7 @@ public class DroneServiceImpl implements DroneService{
 
     @Override
     public Mono<CustomResponse> loadDroneWithMedicationItem(Mono<Long> droneIdParam, Mono<Medication> medicationPayload) {
-        return droneIdParam.map(droneRepository::findById)
-                .flatMap(optionalDrone -> optionalDrone
-                        .map(Mono::just)
-                        .orElseGet(() -> Mono.error(new ApplicationException("Done not found"))))
+        return getDroneFromId(droneIdParam)
                 .filter(drone -> drone.getState() != State.IDLE)
                 .switchIfEmpty(Mono.error(new ApplicationException("Drone not in idle state cannot be loaded")))
                 .filter(drone -> drone.getBattery() < 25)
@@ -54,12 +50,7 @@ public class DroneServiceImpl implements DroneService{
 
     @Override
     public Flux<Medication> getMedicationItemsForADrone(Mono<Long> droneIdParam) {
-        return droneIdParam.map(droneRepository::findById)
-                .flatMap(optionalDrone ->
-                        optionalDrone
-                                .map(Mono::just)
-                                .orElseGet(() -> Mono.error(new ApplicationException("Drone not found")))
-                )
+        return getDroneFromId(droneIdParam)
                 .flatMap(drone -> Mono.just(drone.getMedications()))
                 .flatMapIterable(medItem -> medItem);
     }
@@ -80,15 +71,21 @@ public class DroneServiceImpl implements DroneService{
 
     }
 
+    @Override
+    public Mono<Double> getDroneBatteryLevel(Mono<Long> droneIdParam) {
+        return getDroneFromId(droneIdParam)
+                .map(Drone::getBattery);
+    }
+
+    private Mono<Drone> getDroneFromId(Mono<Long> droneIdParam) {
+        return droneIdParam.map(droneRepository::findById)
+                .flatMap(optionalDrone -> optionalDrone
+                        .map(Mono::just)
+                        .orElseGet(() -> Mono.error(new ApplicationException("Drone not found"))));
+    }
+
     private double getDroneMedicationWeight(Drone drone) {
         return drone.getMedications().stream().mapToDouble(Medication::getWeight).sum();
     }
-
-
-//    TODO
-//    Get All Medication Items for a given drone
-//    Check Available drones for loading
-//    Check drone battery level
-
 
 }
