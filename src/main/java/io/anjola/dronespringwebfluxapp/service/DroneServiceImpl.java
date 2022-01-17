@@ -1,6 +1,5 @@
 package io.anjola.dronespringwebfluxapp.service;
 
-import com.sun.xml.bind.v2.TODO;
 import io.anjola.dronespringwebfluxapp.enums.State;
 import io.anjola.dronespringwebfluxapp.exception.ApplicationException;
 import io.anjola.dronespringwebfluxapp.model.Drone;
@@ -10,6 +9,7 @@ import io.anjola.dronespringwebfluxapp.repository.DroneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -44,10 +44,20 @@ public class DroneServiceImpl implements DroneService{
                 .map(savedDrone -> new CustomResponse("Medication added successfully", true));
     }
 
+    @Override
+    public Flux<Medication> getMedicationItemsForADrone(Mono<Long> droneIdParam) {
+        return droneIdParam.map(droneRepository::findById)
+                .flatMap(optionalDrone ->
+                        optionalDrone
+                                .map(Mono::just)
+                                .orElseGet(() -> Mono.error(new ApplicationException("Drone not found")))
+                )
+                .flatMap(drone -> Mono.just(drone.getMedications()))
+                .flatMapIterable(medItem -> medItem);
+    }
+
 
 //    TODO
-//    Register Drone
-//    Load Drone with Medication
 //    Get All Medication Items for a given drone
 //    Check Available drones for loading
 //    Check drone battery level
