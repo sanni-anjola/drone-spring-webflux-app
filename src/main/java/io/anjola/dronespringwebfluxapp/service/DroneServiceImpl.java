@@ -8,15 +8,23 @@ import io.anjola.dronespringwebfluxapp.payload.CustomResponse;
 import io.anjola.dronespringwebfluxapp.repository.DroneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class DroneServiceImpl implements DroneService{
     private final DroneRepository droneRepository;
+    private final Scheduler scheduler;
+
+    public DroneServiceImpl(DroneRepository droneRepository,@Qualifier("jdbcScheduler") Scheduler scheduler) {
+        this.droneRepository = droneRepository;
+        this.scheduler = scheduler;
+    }
+
     @Override
     public Mono<Drone> registerDrone(Mono<Drone> dronePayload) {
         return dronePayload.map(droneRepository::save);
@@ -33,7 +41,7 @@ public class DroneServiceImpl implements DroneService{
                 .filter(drone -> drone.getBattery() < 25)
                 .switchIfEmpty(Mono.error(new ApplicationException("Drone with battery level lower than 25% cannot be loaded")))
                 .flatMap(drone -> {
-                    double totalWeight = drone.getMedications().stream().mapToDouble(Medication::getWeight).sum();
+                    double totalWeight = getDroneMedicationWeight(drone);
                     return medicationPayload.filter(medication ->
                             drone.getWeight() < totalWeight + medication.getWeight())
                             .switchIfEmpty(Mono.error(new ApplicationException("Drone cannot be loaded with medications over " + drone.getWeight() + "gr")))
@@ -54,6 +62,26 @@ public class DroneServiceImpl implements DroneService{
                 )
                 .flatMap(drone -> Mono.just(drone.getMedications()))
                 .flatMapIterable(medItem -> medItem);
+    }
+
+    @Override
+    public Flux<Drone> getAllDrones() {
+        return Mono.fromCallable(droneRepository::findAll)
+                .flatMapMany(Flux::fromIterable)
+                .subscribeOn(scheduler);
+    }
+
+    @Override
+    public Flux<Drone> getAvailableDrones() {
+        return getAllDrones()
+                .filter(drone -> drone.getState() == State.IDLE &&
+                        drone.getBattery() >= 25 &&
+                        getDroneMedicationWeight(drone) < drone.getWeight());
+
+    }
+
+    private double getDroneMedicationWeight(Drone drone) {
+        return drone.getMedications().stream().mapToDouble(Medication::getWeight).sum();
     }
 
 
