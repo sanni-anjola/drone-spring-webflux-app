@@ -13,6 +13,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
 @Service
 @Slf4j
 public class DroneServiceImpl implements DroneService{
@@ -83,6 +89,62 @@ public class DroneServiceImpl implements DroneService{
                         .map(Mono::just)
                         .orElseGet(() -> Mono.error(new ApplicationException("Drone not found"))));
     }
+
+    @Override
+    public void droneBatteryLevelPeriodicTask()  {
+        log.info("hello....");
+        getAllDrones()
+                .flatMap(drone -> {
+                    log.info("{} {} -> {}", drone.getSerialNumber(), drone.getModel(), drone.getBattery());
+
+                    try {
+                        return Mono.just(writeToCsv(drone));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return Mono.empty();
+                })
+                .subscribe();
+
+    }
+
+    @Override
+    public void drainBatteryPeriodically(){
+
+        getAllDrones()
+                .filter(drone -> drone.getState() != State.IDLE)
+                .map(drone -> {
+                    log.info("draining battery...");
+                    if(drone.getBattery() > 0) drone.setBattery(drone.getBattery() - 1);
+                    return drone;
+                })
+                .map(droneRepository::save)
+                .subscribe();
+
+    }
+
+    private Drone writeToCsv(Drone drone) throws IOException {
+        File file = new File("battery-levels.csv");
+        if(file.exists() || file.createNewFile()){
+            Scanner sc = new Scanner(System.in);
+
+            try {
+                BufferedWriter out = new BufferedWriter(new FileWriter(file, true));
+                out.write(drone.getModel() + "," + drone.getSerialNumber() + "," + drone.getBattery() + "\n");
+                out.newLine();
+                out.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
+        }
+
+        return drone;
+
+    }
+
 
     private double getDroneMedicationWeight(Drone drone) {
         return drone.getMedications().stream().mapToDouble(Medication::getWeight).sum();

@@ -15,4 +15,6 @@ public interface DroneService {
     Flux<Drone> getAllDrones();
     Flux<Drone> getAvailableDrones();
     Mono<Double> getDroneBatteryLevel(Mono<Long> droneIdParam);
+    void droneBatteryLevelPeriodicTask();
+    void drainBatteryPeriodically();
 }
