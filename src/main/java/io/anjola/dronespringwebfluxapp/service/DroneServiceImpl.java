@@ -72,7 +72,8 @@ public class DroneServiceImpl implements DroneService{
     @Override
     public Flux<Drone> getAvailableDrones() {
         return getAllDrones()
-                .filter(drone -> drone.getState() == State.IDLE &&
+                .filter(drone -> (drone.getState() == State.IDLE ||
+                        drone.getState() == State.LOADING) &&
                         drone.getBattery() >= 25 &&
                         getDroneMedicationWeight(drone) < drone.getWeight());
 

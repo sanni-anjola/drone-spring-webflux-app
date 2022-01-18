@@ -43,5 +43,9 @@ Java JDK or JRE must be installed.
 ```shell
 $ java -jar ./target/drone.jar
 ```
+### Assumptions
+The following assumptions were made
 
+1. A drone is available if it is in idle or loading state, the battery level is greater than 25% and the loaded weight is not up to the drone weight.
+2. The battery of thr drone drains if not in idle state
 

@@ -190,12 +190,23 @@ class DroneServiceTest {
                         .build()))
                 .block();
 
-        assertThat(droneRepository.count()).isEqualTo(3);
+        Drone savedDrone4 = droneService
+                .registerDrone(Mono.just(Drone.builder()
+                        .serialNumber("drone4")
+                        .model(Model.CRUISERWEIGHT)
+                        .battery(100.0)
+                        .weight(300.0)
+                        .state(State.LOADING)
+                        .build()))
+                .block();
+
+        assertThat(droneRepository.count()).isEqualTo(4);
         StepVerifier.create(droneService.getAvailableDrones())
                 .expectNextMatches(drone1 -> drone1.getSerialNumber().equals(savedDrone1.getSerialNumber()))
+                .expectNextMatches(drone4 -> drone4.getSerialNumber().equals(savedDrone4.getSerialNumber()))
                 .verifyComplete();
 
-        assertThat(droneService.getAvailableDrones().collectList().block()).hasSize(1);
+        assertThat(droneService.getAvailableDrones().collectList().block()).hasSize(2);
     }
 
     @Test
