@@ -48,4 +48,5 @@ The following assumptions were made
 
 1. A drone is available if it is in idle or loading state, the battery level is greater than 25% and the loaded weight is not up to the drone weight.
 2. The battery of thr drone drains if not in idle state
+3. The record of the battery level at a 10 seconds interval is logged and saved to `battery-levels.csv`.
 
