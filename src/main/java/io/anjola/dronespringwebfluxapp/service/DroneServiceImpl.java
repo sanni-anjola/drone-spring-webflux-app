@@ -110,9 +110,9 @@ public class DroneServiceImpl implements DroneService{
     }
 
     @Override
-    public void drainBatteryPeriodically(){
+    public Mono<Void> drainBatteryPeriodically(){
 
-        getAllDrones()
+        return getAllDrones()
                 .filter(drone -> drone.getState() != State.IDLE)
                 .map(drone -> {
                     log.info("draining battery...");
@@ -120,7 +120,7 @@ public class DroneServiceImpl implements DroneService{
                     return drone;
                 })
                 .map(droneRepository::save)
-                .subscribe();
+                .then();
 
     }
 

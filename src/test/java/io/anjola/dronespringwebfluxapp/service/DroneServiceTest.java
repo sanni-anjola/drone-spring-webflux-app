@@ -200,13 +200,21 @@ class DroneServiceTest {
 
     @Test
     void getDroneBatteryLevel() {
+        Drone savedDrone = droneService.registerDrone(Mono.just(drone)).block();
+        StepVerifier.create(droneService.getDroneBatteryLevel(Mono.just(savedDrone.getId())))
+                .expectNextMatches(battery -> battery.compareTo(savedDrone.getBattery()) == 0)
+                .verifyComplete();
     }
 
-    @Test
-    void droneBatteryLevelPeriodicTask() {
-    }
 
     @Test
     void drainBatteryPeriodically() {
+        drone.setState(State.LOADING);
+        Double initialBatteryLevel = drone.getBattery();
+        Drone savedDrone = droneService.registerDrone(Mono.just(drone)).block();
+        assertThat(savedDrone).isNotNull();
+        StepVerifier.create(droneService.drainBatteryPeriodically()).verifyComplete();
+
+        assertThat(droneService.getDroneBatteryLevel(Mono.just(savedDrone.getId())).block()).isLessThan(initialBatteryLevel);
     }
 }

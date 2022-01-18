@@ -33,7 +33,7 @@ public class DroneSpringWebFluxAppApplication {
         DroneService droneService = context.getBean(DroneService.class);
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(droneService::droneBatteryLevelPeriodicTask, 1, 5, TimeUnit.SECONDS);
-        executorService.scheduleAtFixedRate(droneService::drainBatteryPeriodically, 1, 10, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(() -> droneService.drainBatteryPeriodically().subscribe(), 1, 10, TimeUnit.SECONDS);
 
 
     }
