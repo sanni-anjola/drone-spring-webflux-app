@@ -169,6 +169,33 @@ class DroneServiceTest {
 
     @Test
     void getAvailableDrones() {
+        Drone savedDrone1 = droneService.registerDrone(Mono.just(drone)).block();
+        Drone savedDrone2 = droneService
+                .registerDrone(Mono.just(Drone.builder()
+                        .serialNumber("drone1")
+                        .model(Model.LIGHTWEIGHT)
+                        .battery(20.0)
+                        .weight(70.0)
+                        .state(State.IDLE)
+                        .build()))
+                .block();
+
+        Drone savedDrone3 = droneService
+                .registerDrone(Mono.just(Drone.builder()
+                        .serialNumber("drone2")
+                        .model(Model.CRUISERWEIGHT)
+                        .battery(100.0)
+                        .weight(300.0)
+                        .state(State.DELIVERING)
+                        .build()))
+                .block();
+
+        assertThat(droneRepository.count()).isEqualTo(3);
+        StepVerifier.create(droneService.getAvailableDrones())
+                .expectNextMatches(drone1 -> drone1.getSerialNumber().equals(savedDrone1.getSerialNumber()))
+                .verifyComplete();
+
+        assertThat(droneService.getAvailableDrones().collectList().block()).hasSize(1);
     }
 
     @Test
