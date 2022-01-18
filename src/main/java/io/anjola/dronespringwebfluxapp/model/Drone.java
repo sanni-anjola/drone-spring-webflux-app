@@ -38,6 +38,6 @@ public class Drone {
     @Enumerated(EnumType.STRING)
     private State state;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     private List<Medication> medications;
 }

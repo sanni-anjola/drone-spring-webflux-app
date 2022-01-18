@@ -39,14 +39,14 @@ public class DroneServiceImpl implements DroneService{
     @Override
     public Mono<CustomResponse> loadDroneWithMedicationItem(Mono<Long> droneIdParam, Mono<Medication> medicationPayload) {
         return getDroneFromId(droneIdParam)
-                .filter(drone -> drone.getState() != State.IDLE)
+                .filter(drone -> drone.getState() == State.IDLE)
                 .switchIfEmpty(Mono.error(new ApplicationException("Drone not in idle state cannot be loaded")))
-                .filter(drone -> drone.getBattery() < 25)
+                .filter(drone -> drone.getBattery() >= 25)
                 .switchIfEmpty(Mono.error(new ApplicationException("Drone with battery level lower than 25% cannot be loaded")))
                 .flatMap(drone -> {
                     double totalWeight = getDroneMedicationWeight(drone);
                     return medicationPayload.filter(medication ->
-                            drone.getWeight() < totalWeight + medication.getWeight())
+                            drone.getWeight() >= totalWeight + medication.getWeight())
                             .switchIfEmpty(Mono.error(new ApplicationException("Drone cannot be loaded with medications over " + drone.getWeight() + "gr")))
                             .map(medication -> drone.getMedications().add(medication))
                             .thenReturn(drone);
