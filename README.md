@@ -13,12 +13,31 @@ The Application simulates drones used for the delivery of small items that are (
     - MySql - SQL database for application
     - H2 - In-memory database for testing
 
-#####Starting the databse
+#####Starting the database
 To start the mysql database run the docker-compose command on the terminal
-    -$ docker-compose up
+
+```$ docker-compose up``` 
+
 this will start up the mysql db with the configurations in the application.yml file
 
 To check the database, run
-    $ docker-compose exec mysql -u user -p
+
+```$ docker-compose exec mysql -u user -p```
+
 and on password prompt, enter `password`
+
+To Build
+run form the application directory (Note: You must have maven installed)
+```shell
+$ mvn clean install
+OR
+$ ./mvnw clean install
+```
+To Run
+
+Java JDK or JRE must be installed.
+```shell
+$ java -jar ./target/drone.jar
+```
+
 

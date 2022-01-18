@@ -2,17 +2,20 @@ package io.anjola.dronespringwebfluxapp.model;
 
 import io.anjola.dronespringwebfluxapp.enums.Model;
 import io.anjola.dronespringwebfluxapp.enums.State;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.util.List;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Drone {
     @Id
     @GeneratedValue
@@ -20,7 +23,7 @@ public class Drone {
 
     @NotNull
     @NotBlank
-    @Max(100)
+    @Size(min = 0, max = 100)
     private String serialNumber;
 
     @Enumerated(EnumType.STRING)
