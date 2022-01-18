@@ -120,6 +120,19 @@ class DroneServiceTest {
 
     @Test
     void getMedicationItemsForADrone() {
+        Drone savedDrone = droneService.registerDrone(Mono.just(drone)).block();
+        Medication savedMedication = medicationRepository.save(medication);
+        assertThat(savedDrone).isNotNull();
+        assertThat(savedDrone.getId()).isNotNull();
+
+        StepVerifier.create(droneService.loadDroneWithMedicationItem(Mono.just(savedDrone.getId()), Mono.just(savedMedication)))
+                .expectNextMatches(customResponse -> customResponse.isStatus() &&
+                        customResponse.getMessage().equals("Medication added successfully"))
+                .verifyComplete();
+
+        StepVerifier.create(droneService.getMedicationItemsForADrone(Mono.just(savedDrone.getId())))
+                .expectNextMatches(medication -> medication.getName().equals(savedMedication.getName()))
+                .verifyComplete();
     }
 
     @Test
