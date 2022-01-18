@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DroneSpringWebFluxAppApplication {
 
-    private DroneService droneService;
     private final Integer connectionPoolSize;
 
     public DroneSpringWebFluxAppApplication(@Value("${spring.datasource.maximum-pool-size:10}")Integer connectionPoolSize) {

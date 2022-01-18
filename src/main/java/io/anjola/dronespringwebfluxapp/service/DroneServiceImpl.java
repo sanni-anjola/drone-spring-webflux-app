@@ -2,6 +2,7 @@ package io.anjola.dronespringwebfluxapp.service;
 
 import io.anjola.dronespringwebfluxapp.enums.State;
 import io.anjola.dronespringwebfluxapp.exception.ApplicationException;
+import io.anjola.dronespringwebfluxapp.exception.NotFoundException;
 import io.anjola.dronespringwebfluxapp.model.Drone;
 import io.anjola.dronespringwebfluxapp.model.Medication;
 import io.anjola.dronespringwebfluxapp.payload.CustomResponse;
@@ -87,7 +88,7 @@ public class DroneServiceImpl implements DroneService{
         return droneIdParam.map(droneRepository::findById)
                 .flatMap(optionalDrone -> optionalDrone
                         .map(Mono::just)
-                        .orElseGet(() -> Mono.error(new ApplicationException("Drone not found"))));
+                        .orElseGet(() -> Mono.error(new NotFoundException("Drone", "id", String.valueOf(droneIdParam)))));
     }
 
     @Override
